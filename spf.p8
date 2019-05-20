@@ -1,6 +1,9 @@
 pico-8 cartridge // http://www.pico-8.com
 version 18
 __lua__
+-spf
+--a game by kyle neubarth & madeline lamee
+
 sunangle = .25
 mousex = 0
 mousey = 0
@@ -9,6 +12,7 @@ numrects = 0
 numlines = 0
 lines = {}
 rects = {}
+lemmings = {}
 
 function _init()
 	poke(0x5f2d, 1)
@@ -35,9 +39,36 @@ function _draw()
 	drawrects()
 end
 -->8
-function coordtoangle(ax,ay)
-	return atan2(ax-64,ay-64)
+--draw functions
+
+function drawrects()
+	color(1)
+	for i=1,numrects do
+		rectfill(rects[i].x,rects[i].y,rects[i].x+rects[i].w,rects[i].y+rects[i].h)
+	end
 end
+function shadows()
+	for i=1,numlines do
+		x = lines[i].x
+		y = lines[i].y
+		x2 = lines[i].x2
+		y2 = lines[i].y2
+		color(0)
+		for j=1,50 do
+			dx = -j*cos(sunangle)
+			dy = -j*sin(sunangle)
+			line(x+dx,y+dy,x2+dx,y2+dy)
+		end
+	end
+end
+function round(a)
+	if a%1 <= .5 then
+		a += 1
+	end
+	return flr(a)
+end
+-->8
+--constructors/add functions
 
 function addrect(x,y,w,h)
 	newrect = {}
@@ -61,39 +92,11 @@ function addline(x,y,x2,y2)
 	numlines+=1
 	lines[numlines] = newline
 end
-function drawrects()
-	color(1)
-	for i=1,numrects do
-		rectfill(rects[i].x,rects[i].y,rects[i].x+rects[i].w,rects[i].y+rects[i].h)
-	end
-end
-function shadows()
-	for i=1,numlines do
-		//x = rects[numrects].x
-		//y = rects[numrects].y
-		//x2 = rects[numrects].x+rects[numrects].w
-		//color(0)
-		//for j=1,50 do
-		//	line(x-j*sin(sunangle-.25)/cos(sunangle-.25),y+j,x2-j*sin(sunangle-.25)/cos(sunangle-.25),y+j)
-		//end
-		//color(1)
-		//line(x,y,x + 100*cos(sunangle+.5),y + 100*sin(sunangle+.5))
-		//line(x2,y,x2 + 100*cos(sunangle+.5),y + 100*sin(sunangle+.5))
-		//color(0)
-		x = lines[i].x
-		y = lines[i].y
-		x2 = lines[i].x2
-		y2 = lines[i].y2
-		color(0)
-		for j=1,50 do
-			dx = -j*cos(sunangle)
-			dy = -j*sin(sunangle)
-			line(x+dx,y+dy,x2+dx,y2+dy)
-		end
-	end
-end
-function round(a)
-	
+-->8
+--utility
+
+function coordtoangle(ax,ay)
+	return atan2(ax-64,ay-64)
 end
 __gfx__
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
