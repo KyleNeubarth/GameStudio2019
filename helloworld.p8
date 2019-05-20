@@ -1,7 +1,37 @@
 pico-8 cartridge // http://www.pico-8.com
 version 18
 __lua__
-print("hello world lol nope",64,64)
+sunangle = .25
+mousex = 0
+mousey = 0
+
+rects = {}
+
+function _init()
+	poke(0x5f2d, 1)
+end
+
+function _update()
+	mousex = stat(32)
+	mousey = stat(33)
+end
+
+function _draw()
+	//color(1)
+	cls()
+	color(10)
+	circfill(64 + 50*cos(sunangle),64 + 50*sin(sunangle),10)
+	print(mousex,0,0)
+	color(1)
+	angle = coordtoangle(mousex,abs(-mousey+64)-64)
+	circfill(64 + cos(angle)*50,64+sin(angle)*50,3)
+	sunangle += .2*(angle-sunangle)
+	
+end
+-->8
+function coordtoangle(ax,ay)
+	return atan2(ax-64,ay-64)
+end
 __gfx__
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
