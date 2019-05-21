@@ -11,13 +11,15 @@ mousey = 0
 numrects = 0
 numlines = 0
 numlemmings = 0
-numlevels = 0
+numladders = 0
 lines = {}
 rects = {}
 lemmings = {}
-levels = {}
+ladders = {}
 
 //level stuff
+numlevels = 0
+levels = {}
 activelevel = 0
 lemmingsalive = 0
 lemmingsneeded = 0
@@ -31,15 +33,12 @@ lemmingv = .2
 function _init()
 	//enable mouse tracking
 	poke(0x5f2d, 1)
-	//addrect(50,80,20,10)
-	//addrect(100,50,120,128)
-	//addrect(8,50,28,128)
-	//addrect(0,120,128,128)
-	//addlemming(64,100)
 	addlevel(3,3, {100,106} , { {30,100},{40,100},{50,50} } )
 	addlevelrect(50,80,20,10)
 	addlevelrect(0,120,128,128)
 	loadlevel(1)
+	
+	addladder(60,80,40)
 end
 
 function _update()
@@ -59,12 +58,20 @@ function _draw()
 	shadows()
 	drawrects()
 	detectshade()
+	drawladders()
 	drawlemmings()
 	drawsun()
 	color(11)
 	rect(winzone[1],winzone[2],winzone[1]+16,winzone[2]+16)
 	color(0)
-	print(lemmingswon,2,2)
+	print(lemmings[1].exposure,2,2)
+	print(lemmings[2].exposure,12,2)
+	print(lemmings[3].exposure,22,2)
+	print(numlemmings,32,2)
+	if lemmingswon >= lemmingsneeded then
+		color(10)
+		print("level complete!",64,64)
+	end 
 end
 -->8
 --draw functions
@@ -73,6 +80,13 @@ function drawsun()
 	color(10)
 	circfill(64 + 50*cos(sunangle),44 + 30*sin(sunangle),10)
 	//print(sunangle,0,0)
+end
+function drawladders()
+	color(4)
+	for i=1,numladders do
+		l = ladders[i]
+		line(l.x,l.y,l.x,l.y+l.h)
+	end
 end
 function drawrects()
 	color(1)
@@ -184,8 +198,8 @@ function updatelemmings()
 			end
 			lemmings[i].y += dy
 		else
-			//hj = true + 1
 			//sideways collision
+			
 			dx = lemmingv*( (lemmings[i].dir == "right") and 1 or -1)
 			nx = dx + ( (lemmings[i].dir == "right") and (lemmings[i].x + lemmingw) or lemmings[i].x - 1)
 			
@@ -225,18 +239,31 @@ function lemmingtriggers()
 				i-=1
 			end
 		end
+		
+		//check exposure
+		if lemmings[i].exposure > 50 then
+			lemmingsalive-=1
+			removelemming(i)
+		end
 	end
 end
 function removelemming(i)
-	l = lemmings[i]
 	if numlemmings > 1 then
 		lemmings[i] = lemmings[numlemmings]
+		numlemmings-=1
 	end
-	numlemmings-=1
 end
 -->8
 --constructors/add functions
 
+function addladder(x,y,h)
+	newladder = {}
+	newladder.x = x
+	newladder.y = y
+	newladder.h = h
+	numladders+=1
+	ladders[numladders] = newladder
+end
 function addlemming(x,y)
 	newlemming = {}
 	newlemming.x = x
