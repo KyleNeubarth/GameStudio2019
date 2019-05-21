@@ -68,7 +68,7 @@ function shadows()
 		x2 = lines[i].x2
 		y2 = lines[i].y2
 		color(0)
-		for j=1,80 do
+		for j=1,130 do
 			dx = -j*cos(sunangle)
 			dy = -j*sin(sunangle)
 			line(x+dx,y+dy,x2+dx,y2+dy)
