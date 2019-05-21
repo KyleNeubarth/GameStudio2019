@@ -38,7 +38,7 @@ function _init()
 	addlevelrect(0,120,128,128)
 	loadlevel(1)
 	
-	addladder(60,80,40)
+	addladder(60,80,39)
 end
 
 function _update()
@@ -56,17 +56,17 @@ function _draw()
 	rectfill(0,0,128,128)
 	
 	shadows()
-	drawrects()
 	detectshade()
+	drawrects()
 	drawladders()
 	drawlemmings()
 	drawsun()
 	color(11)
 	rect(winzone[1],winzone[2],winzone[1]+16,winzone[2]+16)
 	color(0)
-	print(lemmings[1].exposure,2,2)
-	print(lemmings[2].exposure,12,2)
-	print(lemmings[3].exposure,22,2)
+	print(lemmings[1].climbing,2,8)
+	print(lemmings[2].climbing,2,14)
+	print(lemmings[3].climbing,2,20)
 	print(numlemmings,32,2)
 	if lemmingswon >= lemmingsneeded then
 		color(10)
@@ -111,33 +111,40 @@ end
 function detectshade()
 
 	for k=1,numlemmings do
-		//sun detect code
-		//must be done in draw
-		//detection is after shadows are drawm
-		sun = false
-		for i=0,lemmingw-1 do
-			for j=0,lemmingh-1 do
-				if pget(lemmings[k].x+i,lemmings[k].y+j) != 0 then
-						sun = true
-						goto found_sun
-					break
+		if lemmings[k].dead == false then
+			
+			//sun detect code
+			//must be done in draw
+			//detection is after shadows are drawm
+			sun = false
+			for i=0,lemmingw-1 do
+				for j=0,lemmingh-1 do
+					if pget(lemmings[k].x+i,lemmings[k].y+j) != 0 then
+							sun = true
+							goto found_sun
+						break
+					end
 				end
 			end
-		end
-		::found_sun::
-		if sun == true then
-			lemmings[k].exposure+=1
-		else 
-			lemmings[k].exposure=0
+			::found_sun::
+			if sun == true then
+				lemmings[k].exposure+=1
+			else 
+				lemmings[k].exposure=0
+			end
 		end
 	end
 end
 function drawlemmings()
 	for k=1,numlemmings do
-		if lemmings[k].exposure > 0 then
-			color(8)
+		if lemmings[k].dead == true then
+		color(3)
 		else
-			color(11)
+			if lemmings[k].exposure > 0 then
+				color(8)
+			else
+				color(11)
+			end
 		end
 		rectfill(lemmings[k].x,lemmings[k].y,lemmings[k].x+lemmingw,lemmings[k].y+lemmingh)
 	end
@@ -151,80 +158,123 @@ function updatesun()
 end
 function updatelemmings()
 	
-	//check for platform below
 	
 	for i=1,numlemmings do
 		
-		ny = lemmings[i].y+lemmingh+1
+		//ladder movement
 		
-		platform_below = false
-		for j=1,numrects do
-			r = rects[j]
-			if (ny >= r.y and ny <= r.y+r.h) then
-				for k=-1,lemmingw do
-					nx = lemmings[i].x + k
-					if (nx >= r.x and nx <= r.x+r.w) then
-						//there's a platform
-						platform_below = true
-						goto platform_below
-					end
-				end
+		ny = (lemmings[i].dead) and .4 or .2
+		if lemmings[i].climbing == "up" then
+			ny *= -1
+			ny += lemmings[i].y
+			lad = ladders[lemmings[i].ladderid]
+			if ny+lemmingh <= lad.y then
+				lemmings[i].climbing = "not"
 			end
-		end
-		
-		::platform_below::
-		if platform_below == false then
-			dy = .4
-			ny = .4 + lemmings[i].y+lemmingh
-		
-			fall_hit = false
+			lemmings[i].y = ny
+		else if lemmings[i].climbing == "down" then
+			ny += lemmings[i].y
+			lad = ladders[lemmings[i].ladderid]
+			if ny+lemmingh >= lad.y+lad.h then
+				lemmings[i].climbing = "not"
+			end
+			lemmings[i].y = ny
+		else
+			
+			//check for platform below
+			dx = lemmingv*( (lemmings[i].dir == "right") and 1 or -1)
+			nx = dx + ( (lemmings[i].dir == "right") and (lemmings[i].x + lemmingw) or lemmings[i].x)
+			
+			ny = lemmings[i].y+lemmingh+1
+			
+			platform_below = false
 			for j=1,numrects do
 				r = rects[j]
 				if (ny >= r.y and ny <= r.y+r.h) then
-					for k=0,lemmingw-1 do
+					for k=-1,lemmingw do
 						nx = lemmings[i].x + k
 						if (nx >= r.x and nx <= r.x+r.w) then
 							//there's a platform
-							fall_hit = true
-							goto hit_ground
+							platform_below = true
+							goto platform_below
 						end
 					end
 				end
 			end
+			::platform_below::
+			if platform_below == false then
+				dy = .4
+				ny = .4 + lemmings[i].y+lemmingh
 			
-			::hit_ground::
-			if hit_ground == true then
-				dy = -(ny-.4) + r.y+r.h+2
-			end
-			lemmings[i].y += dy
-		else
-			//sideways collision
-			
-			dx = lemmingv*( (lemmings[i].dir == "right") and 1 or -1)
-			nx = dx + ( (lemmings[i].dir == "right") and (lemmings[i].x + lemmingw) or lemmings[i].x - 1)
-			
-			for j=1,numrects do
-				r = rects[j]
-				hit = false
-				if (nx >= r.x and nx <= r.x+r.w) then
-					for k=0,lemmingh-1 do
-						ny = lemmings[i].y + k
-						if (ny >= r.y and ny <= r.y+r.h) then
-							//hits rect
-							hit = true
-							goto hit_rect
+				fall_hit = false
+				for j=1,numrects do
+					r = rects[j]
+					if (ny >= r.y and ny <= r.y+r.h) then
+						for k=0,lemmingw-1 do
+							nx = lemmings[i].x + k
+							if (nx >= r.x and nx <= r.x+r.w) then
+								//there's a platform
+								fall_hit = true
+								goto hit_ground
+							end
 						end
 					end
 				end
-				::hit_rect::
-				if hit == true then
-					dx = -(nx-dx) + (lemmings[i].dir == "right" and r.x-1 or r.x+r.w+2)
-					lemmings[i].dir = lemmings[i].dir == "right" and "left" or "right"
+				
+				::hit_ground::
+				if hit_ground == true then
+					dy = -(ny-.4) + r.y+r.h+2
+				end
+				lemmings[i].y += dy
+			else
+				//sideways collision
+				if lemmings[i].dead == true then
+					goto lemming_loop
+				end
+				dx = lemmingv*( (lemmings[i].dir == "right") and 1 or -1)
+				nx = dx + ( (lemmings[i].dir == "right") and (lemmings[i].x + lemmingw) or lemmings[i].x - 1)
+				
+				for j=1,numrects do
+					r = rects[j]
+					hit = false
+					if (nx >= r.x and nx <= r.x+r.w) then
+						for k=0,lemmingh-1 do
+							ny = lemmings[i].y + k
+							if (ny >= r.y and ny <= r.y+r.h) then
+								//hits rect
+								hit = true
+								goto hit_rect
+							end
+						end
+					end
+					::hit_rect::
+					if hit == true then
+						dx = -(nx-dx) + (lemmings[i].dir == "right" and r.x-1 or r.x+r.w+2)
+						lemmings[i].dir = lemmings[i].dir == "right" and "left" or "right"
+					end
+				end
+				
+				for m=1,numladders do
+					lad = ladders[m]
+					if abs(nx - lad.x) < 1 and ( (lemmings[i].dir == "right" and lemmings[i].x < lad.x) or (lemmings[i].dir == "left" and lemmings[i].x > lad.x) ) then
+						if (ny+lemmingh >= lad.y and ny <= lad.y+lad.h) then
+							if ny > lad.y+lad.h/2 then
+									lemmings[i].climbing = "up"
+								else
+									lemmings[i].climbing = "down"
+								end
+								lemmings[i].ladderid = m
+								lemmings[i].x = lad.x - lemmingw/2
+								goto lemming_loop
+							end
+						end
+					end
+				
+					lemmings[i].x += dx
 				end
 			end
-			
-			lemmings[i].x += dx
 		end
+		::lemming_loop::
 	end
 end
 function lemmingtriggers()
@@ -239,19 +289,19 @@ function lemmingtriggers()
 				i-=1
 			end
 		end
-		
 		//check exposure
-		if lemmings[i].exposure > 50 then
+		if lemmings[i].dead == false and lemmings[i].exposure > 100 then
 			lemmingsalive-=1
-			removelemming(i)
+			lemmings[i].dead = true
 		end
 	end
 end
+//cursed_function
 function removelemming(i)
 	if numlemmings > 1 then
 		lemmings[i] = lemmings[numlemmings]
-		numlemmings-=1
 	end
+	numlemmings-=1
 end
 -->8
 --constructors/add functions
@@ -269,7 +319,10 @@ function addlemming(x,y)
 	newlemming.x = x
 	newlemming.y = y
 	newlemming.dir = "right"
+	newlemming.climbing = "not"
+	newlemming.ladderid = 0
 	newlemming.exposure = 0
+	newlemming.dead = false
 	numlemmings+=1
 	lemmings[numlemmings] = newlemming
 end
