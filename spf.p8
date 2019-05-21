@@ -15,13 +15,17 @@ lines = {}
 rects = {}
 lemmings = {}
 
+//lemming width, height, velocity
 lemmingw = 3
 lemmingh = 5
+lemmingv = .2
 
 function _init()
-	--enable mouse tracking
+	//enable mouse tracking
 	poke(0x5f2d, 1)
 	addrect(50,80,20,10)
+	addrect(100,50,120,128)
+	addrect(8,50,28,128)
 	addlemming(64,100)
 end
 
@@ -30,6 +34,7 @@ function _update()
 	mousey = stat(33)
 	
 	updatesun()
+	updatelemmings()
 end
 
 function _draw()
@@ -105,7 +110,33 @@ function updatesun()
 	sunangle += .2*(angle-sunangle)
 end
 function updatelemmings()
-	
+	for i=1,numlemmings do
+		dx = lemmingv*( (lemmings[i].dir == "right") and 1 or -1)
+		nx = dx + ( (lemmings[i].dir == "right") and (lemmings[i].x + lemmingw) or lemmings[i].x)
+		
+		for j=1,numrects do
+			r = rects[j]
+			hit = false
+			if (nx >= r.x and nx <= r.x+r.w) then
+				for k=0,lemmingh-1 do
+					ny = lemmings[i].y + k
+					if (ny >= r.y and ny <= r.y+r.h) then
+						//hits rect
+						hit = true
+						goto hit_rect
+					end
+				end
+			end
+			::hit_rect::
+			if hit == true then
+				dx = -(nx-dx) + (lemmings[i].dir == "right" and r.x or r.x+r.w)
+				lemmings[i].dir = lemmings[i].dir == "right" and "left" or "right"
+			end
+		end
+		
+		lemmings[i].x += dx
+		
+	end
 end
 -->8
 --constructors/add functions
