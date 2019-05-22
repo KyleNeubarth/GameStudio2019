@@ -8,6 +8,7 @@ sunangle = .25
 mousex = 0
 mousey = 0
 
+//loaded objects
 numrects = 0
 numlines = 0
 numlemmings = 0
@@ -139,6 +140,7 @@ function drawlemmings()
 	for k=1,numlemmings do
 		if lemmings[k].dead == true then
 		color(3)
+		//sprite(x,y,animpos+anim)
 		else
 			if lemmings[k].exposure > 0 then
 				color(8)
@@ -319,10 +321,19 @@ function addlemming(x,y)
 	newlemming.x = x
 	newlemming.y = y
 	newlemming.dir = "right"
+	//animation frame
+	lewlemming.anim = 0
 	newlemming.climbing = "not"
 	newlemming.ladderid = 0
+	//if not 0, in the sun
 	newlemming.exposure = 0
+	//true on death
 	newlemming.dead = false
+	//frames since death
+	newlemming.deathcounter = 0
+	newlemming.walkcounter = 0
+	newlemming.blinkcounter = 0
+	//
 	numlemmings+=1
 	lemmings[numlemmings] = newlemming
 end
@@ -419,6 +430,11 @@ function loadlevel(i)
 		s = level.spawnpoints[j]
 		addlemming(s[1],s[2])
 	end
+end
+-->8
+--sprite/drawing stuff
+function sprite()
+	
 end
 __gfx__
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
