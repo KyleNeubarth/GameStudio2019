@@ -43,42 +43,16 @@ function _init()
 	//enable mouse tracking
 	poke(0x5f2d, 1)
 	addlevel(1,1, {-100,-100}, { {-10,1} })
-	//addlevelrectglass(10,10,10,10)
 	
-	addlevel(3,1, {100,106} , { {7,112},{17,112},{27,112} } )
-	addlevelrect(-5,90,10,30)
-	addlevelrect(123,90,10,30)
-	addlevelrect(5,90,30,10)
-	addlevelrect(64,70,20,10)
+	//
+	addlevel(3,3, {100,106} , { {30,100},{40,100},{50,50} } )
+	addlevelrect(50,80,20,10)
 	addlevelrect(0,120,128,128)
-	
-	addlevel(4,3, {56,44} , { {3,102},{117,102},{40,68},{80,68} } )
-	addlevelrect(0,110,128,20)
-	addlevelrect(52,60,24,16)
-	addlevelrect(36,76,56,24)
-	addlevelrect(20,92,88,24)
-	addlevelrect(-5,90,5,30)
-	addlevelrect(127,90,5,30)
-	addlevelladder(19,92,17)
-	addlevelladder(108,92,17)
-	addlevelladder(35,76,15)
-	addlevelladder(92,76,15)
-	addlevelladder(51,60,15)
-	addlevelladder(76,60,15)
-	
-	addlevel(4,3, {110,84} , { {40,22},{20,42},{40,68},{80,68} } )
-	addlevelrectglass(0,30,50,3)
-	addlevelrectglass(0,50,30,3)
-	addlevelrect(0,120,128,20)
-	addlevelrect(80,25,10,20)
-	addlevelrect(64,70,10,23)
-	addlevelrect(20,90,20,10)
-	addlevelrect(100,100,30,30)
-	addlevelrect(-2,119,1,1)
-	addlevelladder(99,100,19)
-	
+	addlevelladder(60,80,39)
+
 	loadassets(0)
 	addbutton(64,94,30,10,"start","start",true)
+
 end
 
 function _update()
@@ -113,12 +87,6 @@ function _draw()
 	rect(winzone[1],winzone[2],winzone[1]+16,winzone[2]+16)
 	
 	drawbuttons()
-	if uistate == "menu" then
-		spr(245,64-8,44,2,1)
-		print("a game by",hcenter("a game by"),59)
-		print("madeline & kyle",hcenter("madeline & kyle"),69)
-		//sspr(5,15,16,8,64-8,64)
-	end
 	
 	if uistate == "load" then
 		circtransition()
@@ -161,6 +129,10 @@ function _draw()
 				wintimer += 1
 			end
 		end
+		if lemmingswon >= lemmingsneeded then
+			color(10)
+			print("level complete!",64,64)
+		end 
 	end
 	if uistate == "win" then
 		popup()
@@ -168,11 +140,7 @@ function _draw()
 	if uistate == "lose" then
 		popup()
 	end
-	
-	if uistate == "play" then
-		buttons[1].text = lemmingswon .. " / " .. lemmingsneeded
-	end
-	spr(25,mousex-2,mousey-2)
+	spr(0,mousex-2,mousey-2)
 end
 -->8
 function drawsun()
@@ -190,11 +158,7 @@ end
 function drawrects()
 	color(1)
 	for i=1,numrects do
-		if rects[i].glass then
-			rect(rects[i].x,rects[i].y,rects[i].x+rects[i].w,rects[i].y+rects[i].h)
-		else
-			rectfill(rects[i].x,rects[i].y,rects[i].x+rects[i].w,rects[i].y+rects[i].h)
-		end
+		rectfill(rects[i].x,rects[i].y,rects[i].x+rects[i].w,rects[i].y+rects[i].h)
 	end
 end
 function shadows()
@@ -249,24 +213,22 @@ function drawlemmings()
 		if lemmings[k].dead == true then
 			
 			//falling to ash
-			if(lemmings[k].deathcounter == 12) then
-				sfx(2)
-			end
+			
 			if(lemmings[k].deathcounter == 13) then
 				
 				spr(12,lemmings[k].x, lemmings[k].y)
 			else
-				f = not (lemmings[k].dir == "right")
-				sprite(9,flr(lemmings[k].walkcounter/3),lemmings[k].x, lemmings[k].y,f) 
+				sprite(9,flr(lemmings[k].walkcounter/3),lemmings[k].x, lemmings[k].y)
+	 		lemmings[k].deathcounter = 4*3
 				lemmings[k].deathcounter += 1
 			end
 		//lemming is not dead
 		else
+		
 			//lemming is in the sun
 			if lemmings[k].exposure > 0 then
 				//blinking
-				f = not (lemmings[k].dir == "right")
-				sprite(3,flr(lemmings[k].walkcounter/6),lemmings[k].x, lemmings[k].y,f)
+				sprite(3,flr(lemmings[k].walkcounter/6),lemmings[k].x, lemmings[k].y)
 				lemmings[k].walkcounter %= 6*3
 				lemmings[k].walkcounter += 1
 				
@@ -274,8 +236,7 @@ function drawlemmings()
 			else
 				
 				//walking
-				f = not (lemmings[k].dir == "right")
-				sprite(0,flr(lemmings[k].walkcounter/3),lemmings[k].x, lemmings[k].y,f)
+				sprite(0,flr(lemmings[k].walkcounter/3),lemmings[k].x, lemmings[k].y)
 				lemmings[k].walkcounter %= 3*3
 				lemmings[k].walkcounter += 1
 				
@@ -332,17 +293,12 @@ function updatelemmings()
 						if (nx >= r.x and nx <= r.x+r.w) then
 							//there's a platform
 							platform_below = true
-							lemmings[i].walksfx+= 1
-							if lemmings[i].dead == false and lemmings[i].walksfx >= 10 then
-								sfx(0)
-							end
 							goto platform_below
 						end
 					end
 				end
 			end
 			::platform_below::
-			lemmings[i].walksfx %= 10
 			if platform_below == false then
 				dy = .4
 				ny = .4 + lemmings[i].y+lemmingh
@@ -426,15 +382,17 @@ function lemmingtriggers()
 			if l.y >= winzone[2] and l.y+lemmingh <= winzone[2]+16 then
 				lemmingsalive-=1
 				lemmingswon+=1
-				sfx(3)
+				
 				//print jumping animation
-				//sprite(l.x, l.y-16,16,16, )
-				lemmings[i].x = -100
-				//removelemming(i)
+				//sprite(l.x, l.y-16,16,16,
+				spr(16,lemming[i].x, lemming[i].y,2,2)
+				
+				removelemming(i)
+				i-=1
 			end
 		end
 		//check exposure
-		if lemmings[i].dead == false and lemmings[i].exposure > 125 then
+		if lemmings[i].dead == false and lemmings[i].exposure > 100 then
 			lemmingsalive-=1
 			lemmings[i].dead = true
 		end
@@ -502,17 +460,6 @@ function addlevelrect(x,y,w,h)
 	newrect.y = y
 	newrect.w = w
 	newrect.h = h
-	newrect.glass = false
-	levels[numlevels].numrects+=1
-	levels[numlevels].rects[levels[numlevels].numrects] = newrect
-end
-function addlevelrectglass(x,y,w,h)
-	newrect = {}
-	newrect.x = x
-	newrect.y = y
-	newrect.w = w
-	newrect.h = h
-	newrect.glass = true
 	levels[numlevels].numrects+=1
 	levels[numlevels].rects[levels[numlevels].numrects] = newrect
 end
@@ -525,26 +472,14 @@ function addlevelladder(x,y,h)
 	levels[numlevels].ladders[levels[numlevels].numladders] = newladder
 end
 function loadassets(i)
-	if i > 3 then
-		i=0
-	end
 	reset()
 	level = levels[i]
 	lemmingsalive = level.numlemmings
 	lemmingsneeded = level.numsurvive
-	
-	if activelevel > 0 then
-		addbutton(64,4,30,10,"hello","",false)
-		buttons[1].text = lemmingswon .. " / " .. lemmingsneeded
-	end
 	winzone = level.winzone
 	for j=1,level.numrects do
 		r=level.rects[j]
-		if r.glass == true then
-			addrectglass(r.x,r.y,r.w,r.h)
-		else
-			addrect(r.x,r.y,r.w,r.h)
-		end
+		addrect(r.x,r.y,r.w,r.h)
 	end
 	for j=1,level.numlemmings do
 		s = level.spawnpoints[j]
@@ -587,8 +522,8 @@ end
 end
 ]]
 
-function sprite(start, frame, x, y,f )
-	spr(start+frame, x,y,1,1,f)
+function sprite(start, frame, x, y )
+	spr(start+frame, x,y)
 end
 -->8
 --constructors/add functions
@@ -619,7 +554,6 @@ function addlemming(x,y)
 	newlemming.deathcounter = 0
 	newlemming.walkcounter = 0
 	newlemming.blinkcounter = 0
-	newlemming.walksfx = 0
 	//
 	numlemmings+=1
 	lemmings[numlemmings] = newlemming
@@ -630,21 +564,10 @@ function addrect(x,y,w,h)
 	newrect.y = y
 	newrect.w = w
 	newrect.h = h
-	newrect.glass = false
 	addline(x,y,x+w,y)
 	addline(x,y,x,y+h)
 	addline(x+w,y+h,x+w,y)
 	addline(x+w,y+h,x,y+h)
-	numrects+=1
-	rects[numrects] = newrect
-end
-function addrectglass(x,y,w,h)
-	newrect = {}
-	newrect.x = x
-	newrect.y = y
-	newrect.w = w
-	newrect.h = h
-	newrect.glass = true
 	numrects+=1
 	rects[numrects] = newrect
 end
@@ -664,13 +587,13 @@ popuptimer = 0
 function popup()
 	popuptimer += .2*(1-popuptimer)
 	timer+=1
-	buttons[2].w = 80*popuptimer
-	buttons[2].x = 64-buttons[2].w/2
-	buttons[2].h = 20*popuptimer
-	buttons[2].y = 64-buttons[2].h/2
+	buttons[1].w = 80*popuptimer
+	buttons[1].x = 64-buttons[1].w/2
+	buttons[1].h = 20*popuptimer
+	buttons[1].y = 64-buttons[1].h/2
 	if popuptimer > .95 then
 		s = (uistate == "win") and "you win!" or "you lose!"
-		buttons[2].text = s
+		buttons[1].text = s
 	end
 	if timer == 50 then
 	 s1 = "menu"
@@ -767,9 +690,6 @@ function processcommand(c)
 	end
 	if c == "next" then
 		activelevel += 1
-		if activelevel > 3 then
-			activelevel = 0
-		end
 		uistate = "load"
 		enablebuttons = false
 	end
@@ -804,12 +724,12 @@ f033330f003f330ff0333000f033330f003e330e80333000e033330e00383308f033300050333305
 0030030000600300003f00000030030000300300003800000030030000300300003f000000300300503553050355555305555550000000000000000000000000
 00f00f000f000f0000f0000000f00f000e000e000080000000e00e000800080000f0000000500500055555505555555555555555000000000000000000000000
 00000000000000000000000000000000800a008000800000800a0080008000000000000000000000000000000000000000000000000000000000000000000000
-000000000000000000000000000a0000000000090000080000000009000008000000000000700000000000000000000000000000000000000000000000000000
-0000000000000000900a0000000000000a0090000000000000000000000000000000000000770000000000000000000000000000000000000000000000000000
-00000000000a000000000009000000000000000000a000080000000000a000080000000000777000000000000000000000000000000000000000000000000000
-000a0000000000000a00900000000000009990000000800000000000000080000000000000777700000000000000000000000000000000000000000000000000
-00000000000000000000000000a00000099999000000090000000000000009000000000000770000000000000000000000000000000000000000000000000000
-0a00000000000000009990000000000009f1f1000000000000999000000000000000000000007000000000000000000000000000000000000000000000000000
+000000000000000000000000000a0000000000090000080000000009000008000000000000000000000000000000000000000000000000000000000000000000
+0000000000000000900a0000000000000a0090000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000000a000000000009000000000000000000a000080000000000a000080000000000000000000000000000000000000000000000000000000000000000
+000a0000000000000a00900000000000009990000000800000000000000080000000000000000000000000000000000000000000000000000000000000000000
+00000000000000000000000000a00000099999000000090000000000000009000000000000000000000000000000000000000000000000000000000000000000
+0a00000000000000009990000000000009f1f1000000000000999000000000000000000000000000000000000000000000000000000000000000000000000000
 0000000000a00000099999000000090009ffff000a000a000999990000000a000000000000000000000000000000000000000000000000000000000000000000
 009990000000000009f1f10000000000033333330000000009f1f100000000000099900000000000000000000000000000000000000000000000000000000000
 099999000000000009ffff000a000a00f033330f0008000009ffff00000000000999990000000000000000000000000000000000000000000000000000000000
@@ -927,7 +847,7 @@ __sfx__
 000100002f6102c6102961025610226101d610196201562012620106200d6200b6200c61013610236102561005630006000b60013600186001a6001d600206002560028600296000000000000000000505000000
 000300000e0500e0500f05012050160501a050200501000015000190001d000220002900036000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 000600002211024110281102911028110271102511024110271102a1102b110291102611023150211502010021100211002210020100201002010032100000000000000000000000000000000000000000000000
-00040000140101301013020130201302013030140301503017040190401a0401d0402104024040270502b05031050340503905037000320003100030000300000000000000000001750000000000000000000000
+00040025140101301013020130201302013030140301503017040190401a0401d0402104024040270502b05031050340503905037000320003100030000300000000000000000001750000000000000000000000
 010500002401524015240152401524015240151f0151f0151f0151f0101f0101f0101f0101f0101f0101c0101c0101c0101700017000170000c01011010130101600015000150001400014000140000000000000
 __music__
 01 01424344
