@@ -222,7 +222,7 @@ function updatelemmings()
 						end
 					end
 				end
-				
+								
 				::hit_ground::
 				if hit_ground == true then
 					dy = -(ny-.4) + r.y+r.h+2
@@ -322,7 +322,7 @@ function addlemming(x,y)
 	newlemming.y = y
 	newlemming.dir = "right"
 	//animation frame
-	lewlemming.anim = 0
+	newlemming.anim = 0
 	newlemming.climbing = "not"
 	newlemming.ladderid = 0
 	//if not 0, in the sun
